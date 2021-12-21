@@ -1,6 +1,6 @@
 ---
 title: "crime&community"
-author: "Tiana_Noll_Walker"
+author: "Tiana "
 date: "12/13/2021"
 output: pdf_document
 ---
