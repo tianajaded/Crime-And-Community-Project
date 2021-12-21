@@ -1,0 +1,190 @@
+---
+title: "crime&community"
+author: "Tiana_Noll_Walker"
+date: "12/13/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#The Process
+
+When I transferred the original dataset to Excel I was able to easily transport the values into CSV format because they were already separated by commas. However, I didn’t have the labels. I could have entered the labels by copy and pasting, but the labels weren’t in my desired format so I chose to manually enter the labels. There’s also dozens of entries, so I figured going through and manually entering the labels was a good way for me to really go through and examine each of the columns and think about how they each related to the dataset as I entered them. 
+
+The first thing I did after transferring my csv to R was running the summary statistics. Although it seems very simple, this was a very necessary and helpful part of the EDA process. It allowed me to go through each attribute and see the basic stats, the most important being the mean. Once I had the mean, I could really think about some of the bigger problems associated with the data. For example, race, gender, and age statistics, the mean amount of violent crime, etc. This was the essential first step in establishing my process and choosing what specific analyses I wanted to run. However, obviously most of the values need to be pulled and ran in regression models in relation to other specific variables. There is a lot of data here, and they aren’t all relative to each other. 
+
+I decided I wanted to do all my EDA on mostly WA, so I extracted all the WA info and transferred it to a different CSV, which I transferred to R. There is a lot of missing data for different cities, so some of the plots and analysis I only had the option to run data on about 5 different cities for some of the stats that I wanted regarding LEMAS, the police, and violent crime. I labeled and explained most of the prcocesses and plots as I go through, but some of them are pretty self explanatory. 
+
+
+#Big Question and Dataset Choice
+
+I chose to do the crime and community dataset. I am very interested in this one, because I am curious to know what the statistics are for myself. In issues involving crime and community, I feel like the media often gives narratives siding with one extreme or the other, and was curious to conduct my own analysis and find out for myself what the real numbers actually are. My "big question" of interest relating to the analysis in a broader sense was originally “is the media telling the truth” about crime and community stats, and seeing what story the data itself tells. The results are important and relevant to myself, and to the community at large. 
+
+What I discovered though is exactly what we covered when we were studying EDA. You start out with one question, you perform EDA, and then you are left with a lot of other questions that make you rephrase the original question. Doing PCA and figuring out the biggest predictors of violent crimes really made me question a lot of things. I explain more below, but it seems as though no matter what, the percentage of black people in a population is always an important predictor. Well, in some ways this confirms the "big question", because that is often a hot topic in the media, on all sides of the political spectrum. However, I realize now after doing the EDA that the bigger question is why. I need more tools and time to figure out the answer to that fully, but this was a good place to start. As I went through, I started asking different questions and the biggest one ended up being in relation to race and trying to figure out what the biggest predictors of violent crime were and why. I also did some Mutual Information Analysis in Python to look further into some of the variables, but I didn't know how to do it in R so I didn't include it here. I didn't really use that information directly, but it did give me a better idea of what variables might be the most helpful in relation to this dataset. I made plots and did further EDA in this markdown that was found in that MIA to see if the results were reproducible and relevant. 
+#Methodology
+
+There were some issues. At first the original dataset was too big, and then I ended up narrowing it down to five cities and that was too small. I eventually just decided to go with WA, which was in the middle. At times, I do feel like this dataset was still too small. The biggest difficulty I had was definitely running PCA, but mostly it was just time consuming. PCA was helpful because it was able to take 130 variables and narrow them down to the 4 most important and relevant ones. Once I found those, I made a bunch of plots and visualizations and kept asking more questions. 
+
+#Conclusions
+Like I mentioned above, my original big question was "is the media telling the truth about crime and community?" The media often links crime rates to black and brown population, and income. Based on this analysis, these stipulations seem correct. However, I think there is a lot more analysis that needs to be done and nuance that needs to be asserted when talking about these subjects. Some things that I found interesting that I feel like isn't really talked about as much in the media when it comes to crime is age, as well as the amount of homes with more than two parents. But again, these might be because of systemic or historical issues that need more context. There are a lot of correlations in a lot of these variables, but that doesn't necessarily mean that they are causing the rate of violent crimes. 
+
+```{r csv}
+cc <- read.csv("community_crime.csv")
+summary(cc)
+library(tidyverse)
+library(ggplot2)
+
+```
+
+```{r washington}
+wa5<- read.csv("wa5counties.csv")
+summary(wa5)
+```
+Does income seem to make a difference in the amount of police in the community? There isn't enough variables here to make an informed decision but it seems like there tends to be more police for less income. With the exception of Bellevue, which is basically twice as rich as everyone else yet has the same amount of police. For some reason, Seattle which has a way bigger population than any of the other cities, has the average income between 5 cities and yet has the least police. Why would this be? 
+```{r police/inc}
+library(ggplot2)
+ggplot(data=wa5, mapping = aes(x= LemasSwFTFieldOps
+, y= medIncome, color= community_name)) +geom_point(size=2)+ggtitle("Avg Income vs How Many Police?")+labs(y= "Average Median Income of Population", x = "Amount of Police Officers in Field(non administrative)")  
+```
+
+
+```{r pop vs police}
+ggplot(data=wa5, mapping = aes(x= LemasSwFTFieldOps
+, y= community_name, color = community_name)) +geom_point(size=2) +geom_point(size=2)+ggtitle("Amount of In-Field Police for Every City")+labs(y= "City", x = "Amount of Police Officers in Field(non administrative)")  
+```
+Why do Everett and Bellevue, the least populated cities (by like 70%), have the most in-field police? Perhaps Bellevue is richer so they can pay to have more police? Maybe Everett has more violent crime so they need more police? I'm going to now look at the amount of violent crimes in each city to see if the amount of police makes sense. Also going to look at how many calls the police get for each city. Maybe if there are a lot of police calls in Bellevue, it makes sense for them to have more police?
+
+```{r violent crime each city}
+ggplot(data=wa5, mapping = aes(x= ViolentCrimesPerPop
+, y=community_name, color= community_name)) +geom_point(size=2) +geom_point(size=2)+ggtitle("Violent Crimes Per 100k for Each City")+labs(y= "City", x = "Amount of Violent Crime Per 100k People")  
+
+```
+Ok so this is interesting. Everett and Bellevue actually have the least amount of violent crimes per 100k people, and yet they have the most amount of police. Everett's median income amount is almost half of what Bellevue's is. The most violent crimes are in Tacoma, which had the second biggest police force. So that makes sense. But Seattle has the largest population and the second largest amount of violent crime, although it has the smallest amount of police. 
+
+```{r police calls vs pop}
+ggplot(aes(x=LemasTotReqPerPop,y=community_name, color= community_name),data=wa5)+
+  geom_point() +geom_point(size=2)+ggtitle("Amount of Police Requests For Each City")+labs(y= "City", x = "Total Police Requests Per 100k People")  
+
+```
+
+Bellevue and Seattle make sense. There isn't much crime, so there isn't that many requests for police. I wonder why then Bellevue has so many police? Maybe because they are a richer city so they can just afford it. Everett has the most requests for police, even though it has a comparatively low violent crime rate. However, they do have a lot of field officers so it makes sense. Maybe there is just a lot of petty crime rather than violent crime in Everett. 
+
+```{r black}
+library(corrr)
+library(dplyr)
+library(GGally)
+numonly<-read.csv("numericonly.csv")
+ggpairs(wa5[, c(128,8,9,10,11)])
+```
+This correlation table shows there are some pretty big correlations between white, black, and hispanic races and violent crimes. However, there is no correlation between Asians and violent crime. This is only for the five cities though, Seattle, Spokane, Bellevue, Everett and Tacoma.
+
+```{r pairs}
+wacrime<- read.csv("wacrime.csv")
+pwa<-(wacrime[c(6,8,9,10,11,12,13,17,18,26,27,28,29,30,35,36,37,96)])
+d<-dist(wacrime[c(6,8,9,10,11,12,13,17,18,26, 27,28,29,30,35,36,37,96)])
+fit <- cmdscale(d, eig=TRUE, k=2)
+
+head(pwa)
+ggpairs(pwa)
+```
+This correlation table is not that helpful, because it is much more difficult to read. I'm going to look at the same few variables that we looked at above but for all of WA.
+
+```{r cor}
+ggpairs(wacrime[, c(128,8,9,10,11)])
+```
+Here we can see that throughout WA, there was the most correlation between violent crime, and the percentage of both white and black people. 
+
+Next I'm going to get the summary of the primary components so I can run PCA. 
+```{r pca}
+wacrime<- read.csv("wacrime.csv")
+wapca<-prcomp(pwa, center = TRUE, scale = TRUE)
+summary(wapca)
+
+```
+Looking at the principal component analysis of the 18 chosen variables.
+```{r pc}
+names(wapca)
+round(wapca$rotation,2)
+sum(wapca$rotation[,1]**2)
+wacrime$pc1 <- wapca$x[,1]
+wacrime$pc2 <- wapca$x[,2]
+wacrime$pc3<- wapca$x[,3]
+ggplot(wacrime, aes(x=pc3, y =pc2, color=as.factor(ViolentCrimesPerPop))) +geom_point()
+elbow<-cumsum(wapca$sdev^2/sum(wapca$sdev^2))
+plot(elbow)
+screeplot(wapca)
+biplot(wapca)
+ggplot(wacrime,aes(y=pc3, x= as.factor(ViolentCrimesPerPop)))+geom_boxplot()
+ggplot(wacrime,aes(y=pc2, x=as.factor(ViolentCrimesPerPop)))+geom_boxplot()
+
+```
+We can see from running Principal component analysis that the top 3 components capture 72% of the variance in the data. The highest ranking components are age12-29(45%), population(48%), racepctblack(48%), and numStreet(46%)(this is the number of homeless people).
+```{r load}
+barplot(wapca$rotation[,1], las=2, cex.names=.5)
+barplot(wapca$rotation[,2], las=2, cex.names = .5)
+barplot(wapca$rotation[,3], las=2, cex.names = .5)
+```
+Next, I am going to apply K means clustering to the numeric wacrime columns with 2 clusters. I didn't use pc1 because there wasn't much variance or largely relevant values in pc1. I separate them by city. 
+```{r cluster}
+
+pwa<-wacrime[c(4,6,8,9,10,11,12,13,14,17,26,27,28,29,30,35,36,37,96,128)]
+d<-dist(wacrime[c(4,6,8,9,10,11,12,13,14,17,26,27,28,29,30,35,36,37,96,128)])
+fit <- cmdscale(d, eig=TRUE, k=2)
+
+mdsdf<-data.frame(X=fit$points[,1],Y=fit$points[,2], ViolentCrimesPerPop=as.factor(wacrime$community_name))
+
+ggplot(mdsdf, aes(x=-X, y = Y, color=as.factor(wacrime$community_name)))+geom_point(size=.5)
+ggplot(wacrime, aes(x=pc2, y = pc3, color=as.factor(community_name)))+geom_point(size=.5)
+
+```
+Here I apply k means clustering to the second and third principal components with two clusters. 
+```{r pcaclust}
+wacrimek2<-kmeans(wacrime[c(6,8,9,10,11,12,13,14,17,26,27,28,29,30,35,36,37,96)],2)
+wacrimekw3<-kmeans(wacrime[,129:130],2)
+wacrimekw3$tot.withinss
+wapca$tot.withinss
+wacrime$cluster2 <-wacrimekw3$cluster
+wapca$cluster2<-wapca$cluster
+
+ggplot(wacrime,aes(x= pc2, y = pc3, color=as.factor(cluster2)))+geom_point()
+
+```
+```{r pc3}
+d<- dist(wacrime[,129:130])
+fit1 <-cmdscale(d, eig=TRUE, k=2)
+mdsdf<-data.frame(X=fit1$points[,1], Y= fit1$points[,2], type=as.factor(wacrime$community_name))
+
+ggplot(mdsdf, aes(x=-X, y = Y, color=type))+geom_point(size=1)
+```
+This is all the principal component analysis. I clustered in two dimensions to see how the data would fit. 
+
+From this PCA, we found out which were the biggest variables involving violent crime in WA cities. Honestly, some of the results made sense and some didn't. Population, of course makes sense in relation to the amount of violent crime. The amount of people in a city correlates to how much potential there is for crime. Age(12-29) is a big predictor, and that makes sense. I don't think a lot of people over the age of 30 are committing violent crimes, at least as much as younger people are. The only predictor that didn't really make sense to me was the percentage of black people. This doesn't make sense because it seems like black people throughout WA always have a very small amount of the population, and it seems like the stats across variables are pretty similar to the amount of Hispanics, yet Hispanics aren't as high of components. 
+
+So after finding out the biggest variables relating to violent crime, I went back to compare Everett and Bellevue to see if there was a reason why even though Bellevue and Everett have so many police, even though the amount of violent crime is the lowest there. Even though Everett has a low amount of violent crime, they have the highest amount of people aged 12-29. So maybe since that is such a relevant factor, they predict that they need more police? I did this for the percentage of black people as well and it didn't really have a difference in Everett. Tacoma however, had the largest amount of black people and also had the largest rate of violent crime. So maybe there is a correlation there. 
+```{r age}
+ggplot(aes(x=agepct12t29,y=community_name, color=community_name),data=wa5)+
+  geom_point() +geom_point(size=2)+ggtitle("Avg Income vs How Many Police?")+labs(y= "City", x = "Percentage of People Between Ages 12-29")  
+```
+```{r raceev}
+ggplot(aes(x=racepctblack,y=community_name, color= community_name),data=wa5)+
+  geom_point() +geom_point(size=2)+ggtitle("Percentage of Black People In Each City")+labs(y= "City", x = "Percentage of Black People")  
+```
+Below, I look at the average median rent and how it relates to violent crime. It shows that the less people are paying for rent(I'm assuming poorer neighborhoods), the higher the crime rate is. 
+```{r city}
+ggplot(aes(x=MedRent, y=ViolentCrimesPerPop, color=community_name), data=wacrime)+geom_point() +geom_point(size=2)+ggtitle("Median Rent vs. Violent Crimes")+labs(y= "Violent Crimes Per 100k People", x = "Median Rent")  
+```
+This was an interesting metric that I was curious about. Does the number of parents in the household (ie not single parent households) make a difference in violent crime? Is there a pattern there? I feel it definitely shows a correlation between more violent crime and single parent homes. The cities with the highest percentage of 2-parent homes have a very low amount of violent crime. 
+```{r kids}
+ggplot(aes(x=PctKids2Par, y=ViolentCrimesPerPop, color=community_name), data=wacrime)+geom_point() +geom_point(size=2)+ggtitle("Pct of Kids In 2-Parent Households vs. Violent Crimes")+labs(y= "Violent Crimes", x = "Percentage of Kids in Households With 2 Parents")  
+
+```
+
+These are some plots I did just for fun because I was curious about the results. Evaluating ages with median household income, separated by city. Interestingly enough the lowest and the highest income both had the smallest amount of people aged 12-29.
+```{r cor tac}
+ggplot(wa5, aes(x = agepct12t29, y=medincome, color= community_name)) + geom_point(size=2) +geom_point(size=2)+ggtitle("Median Income vs Pct of Ppl Age 12-29")+labs(y= "Median Income", x = "Amount of People Ages 12-29")   
+```
+Here I looked at divorce and whether or not the amount of divorced people in a population has any relation to violent crime. It seems that the higher the amount of divorced people in a city, the higher the violent crime rate. 
+```{r married}
+ggplot(wacrime, aes(x = TotalPctDiv, y=ViolentCrimesPerPop, color= community_name)) + geom_point(size=2) +geom_point(size=2)+ggtitle("Divorced vs Violent Crime")+labs(y= "Violent Crimes", x = "Total Percent Divorced") 
+```
